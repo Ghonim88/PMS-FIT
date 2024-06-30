@@ -15,17 +15,28 @@ $router->setNamespace('Controllers');
 
 // routes for the products endpoint
 $router->get('/products', 'ProductController@getAll');
-$router->get('/products/(\d+)', 'ProductController@getOne');
-$router->post('/products', 'ProductController@create');
-$router->put('/products/(\d+)', 'ProductController@update');
-$router->delete('/products/(\d+)', 'ProductController@delete');
 
-// routes for the categories endpoint
-$router->get('/categories', 'CategoryController@getAll');
-$router->get('/categories/(\d+)', 'CategoryController@getOne');
-$router->post('/categories', 'CategoryController@create');
-$router->put('/categories/(\d+)', 'CategoryController@update');
 $router->delete('/categories/(\d+)', 'CategoryController@delete');
+
+$router->post('/login', 'LoginController@login');
+$router->post('/signup/create', 'signupController@create');
+$router->get('/user/fetchusers', 'userController@fetchUsers');
+$router->post('/user/update', 'userController@updateUser');
+$router->delete('/user/delete', 'userController@deleteUser');
+
+$router->get('/getUserWorkout', 'workoutController@getUserWorkout');
+$router->post('/addWorkout', 'workoutController@addWorkout');
+$router->delete('/deleteWorkout', 'workoutController@deleteWorkout');
+
+$router->get('/getUserFood', 'userfoodController@getUserFood');
+$router->post('/addFood', 'userfoodController@addFood');
+$router->delete('/deleteUserFood', 'userfoodController@deleteFood');
+
+$router->post('/addContent', 'BlogController@addContent');
+$router->get('/getAllContent', 'BlogController@getAllContent');
+$router->post('/updateContent', 'BlogController@updateContent');
+$router->delete('/deleteContent', 'BlogController@deleteContent');
+
 
 // Run it!
 $router->run();

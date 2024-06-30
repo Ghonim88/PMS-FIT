@@ -1,48 +1,134 @@
 <?php
-
 namespace Repositories;
 
+use Models\User;
 use PDO;
 use PDOException;
-use Repositories\Repository;
 
 class UserRepository extends Repository
 {
-    function checkUsernamePassword($username, $password)
-    {
-        try {
-            // retrieve the user with the given username
-            $stmt = $this->connection->prepare("SELECT id, username, password, email FROM user WHERE username = :username");
-            $stmt->bindParam(':username', $username);
-            $stmt->execute();
 
-            $stmt->setFetchMode(PDO::FETCH_CLASS, 'Models\User');
-            $user = $stmt->fetch();
+  public function getUserByUserId($userId)
+  {
+    try {
+      $stmt = $this->connection->prepare("
+      SELECT id, userName,password, age, gender, weight, height, bmrInfo, goal, caloriesIntake, role FROM users
+      WHERE  id = :id
+  ");
+      $stmt->bindParam(':id', $userId);
+      $stmt->execute();
 
-            // verify if the password matches the hash in the database
-            $result = $this->verifyPassword($password, $user->password);
+      $row = $stmt->fetch(PDO::FETCH_ASSOC);
+      if ($row === false) {
+        return false;
+      }
+      $user = $this->fromRow($row);
+      
+      return $user;
 
-            if (!$result)
-                return false;
 
-            // do not pass the password hash to the caller
-            $user->password = "";
+    } catch (PDOException $e) {
+      throw new PDOException('Error authenticating user: ' . $e->getMessage());
 
-            return $user;
-        } catch (PDOException $e) {
-            echo $e;
-        }
+    }
+  }
+
+  public function updateUserInfo(User $user)
+  {
+    try {
+      $bmrInfo = $user->calculateBMR();
+      $caloriesIntake = $user->calculateCaloriesIntake();
+      $user->setBmrInfo($bmrInfo);
+      $user->setCaloriesIntake($caloriesIntake);
+      $stmt = $this->connection->prepare("
+    UPDATE users
+    SET 
+        password = :password, 
+        age = :age, 
+        gender = :gender, 
+        weight = :weight, 
+        height = :height, 
+        goal = :goal, 
+        username = :newUsername, 
+        bmrInfo = :bmrInfo, 
+        caloriesIntake = :caloriesIntake
+    WHERE id = :userId
+");
+
+      $params = [
+        ':password' => $user->getPassword(),
+        ':age' => $user->getAge(),
+        ':gender' => $user->getGender(),
+        ':weight' => $user->getWeight(),
+        ':height' => $user->getHeight(),
+        ':goal' => $user->getGoal(),
+        ':newUsername' => $user->getUserName(),
+        ':caloriesIntake' => $user->getCaloriesIntake(),
+        ':bmrInfo' => $user->getBmrInfo(),
+        ':userId' => $user->getUserId(),
+      ];
+      $stmt->execute($params);
+      $rowCount = $stmt->rowCount();
+      if ($rowCount > 0) {
+        return $user;
+      } else {
+        return false;
+      }
+
+    } catch (PDOException $e) {
+      throw new PDOException('Error updating user info: ' . $e->getMessage());
+    }
+  }
+
+
+  public function deleteUser(User $user)
+  {
+    try{
+      
+      $stmt = $this->connection->prepare("DELETE FROM users WHERE id = :id");
+      $userId = $user->getUserId();
+      $stmt->bindParam(':id', $userId, PDO::PARAM_STR);
+      $stmt->execute();
+      return true;
+
+    }catch(PDOException $e){
+      throw new PDOException('Error deleting user: ' . $e->getMessage());
     }
 
-    // hash the password (currently uses bcrypt)
-    function hashPassword($password)
-    {
-        return password_hash($password, PASSWORD_DEFAULT);
-    }
+  }
 
-    // verify the password hash
-    function verifyPassword($input, $hash)
-    {
-        return password_verify($input, $hash);
+  public function DeleteUserFood($foodId)
+  {
+    try {
+      $stmt = $this->connection->prepare("
+    DELETE FROM userfood
+    WHERE id = :id
+");
+      $stmt->bindParam(':id', $foodId, PDO::PARAM_INT);
+      $stmt->execute();
+      return true;
+
+    } catch (PDOException $e) {
+      throw new PDOException($e->getMessage());
+    } 
+
+  }
+
+
+  public function deleteUserWorkout($userId)
+  {
+    try {
+      $stmt = $this->connection->prepare("
+    DELETE FROM workout
+    WHERE userId = :userId
+");
+      $stmt->bindParam(':userId', $userId, PDO::PARAM_INT);
+      $stmt->execute();
+      return true;
+
+    } catch (PDOException $e) {
+      throw new PDOException($e->getMessage());
     }
+  }
+
 }

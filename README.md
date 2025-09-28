@@ -1,5 +1,7 @@
 # PMS FIT
 
+![Fitness Community](https://img.shields.io/badge/Fitness-Community-orange?style=for-the-badge&logo=appveyor)
+
 **🌟 PMS FIT – Your Fitness Journey Companion! 🌟**  
 
 **Welcome to the world of fitness community! 🏋️‍♂️🥗💪**  
